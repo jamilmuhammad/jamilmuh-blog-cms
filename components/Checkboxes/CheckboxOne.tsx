@@ -1,7 +1,12 @@
 import { useState } from 'react';
 
-const CheckboxOne = () => {
-  const [isChecked, setIsChecked] = useState<boolean>(false);
+interface CheckboxOneProps {
+  isChecked: boolean,
+  setIsChecked: (checked: boolean) => void,
+  isShow: boolean
+}
+
+const CheckboxOne = ({ isChecked, setIsChecked, isShow }: CheckboxOneProps) => {
 
   return (
     <div>
@@ -12,6 +17,8 @@ const CheckboxOne = () => {
         <div className="relative">
           <input
             type="checkbox"
+            readOnly={isShow}
+            disabled={isShow}
             id="checkboxLabelOne"
             className="sr-only"
             onChange={() => {
@@ -19,16 +26,15 @@ const CheckboxOne = () => {
             }}
           />
           <div
-            className={`mr-4 flex h-5 w-5 items-center justify-center rounded border ${
-              isChecked && 'border-primary bg-gray dark:bg-transparent'
-            }`}
+            className={`mr-4 flex h-5 w-5 items-center justify-center rounded border ${isChecked && 'border-primary bg-gray dark:bg-transparent'
+              }`}
           >
             <span
               className={`h-2.5 w-2.5 rounded-sm ${isChecked && 'bg-primary'}`}
             ></span>
           </div>
         </div>
-        Checkbox Text
+        {isChecked ? 'publish' : 'draft'}
       </label>
     </div>
   );
