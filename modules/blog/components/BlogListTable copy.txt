@@ -1,0 +1,240 @@
+"use client"
+/* eslint-disable @next/next/no-html-link-for-pages */
+import { Suspense, useState, useMemo } from "react"
+import useSWR, { useSWRConfig } from "swr"
+
+import Link from "next/link"
+import { FiEdit, FiEye, FiTrash } from "react-icons/fi"
+import { fetcher } from "@/services/fetcher"
+import { Blog, User } from "@/commons/types/blog"
+import Image from "next/image"
+import EmptyState from "@/components/common/elements/EmptyState"
+import Loader from "@/components/common/Loader"
+
+interface BlogListEntryProps {
+    entry: Blog,
+    handleShow?: () => void
+}
+
+function BlogListEntry({ entry, handleShow }: BlogListEntryProps) {
+
+    return (
+        <>
+            {/* {packageData.map((packageItem, key) => ( */}
+            <tr>
+                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
+                    <h5 className="font-medium text-black dark:text-white">
+                        {entry.title}
+                    </h5>
+                    {/* <p className="text-sm">${entry.price}</p> */}
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <p className="text-black dark:text-white">
+                        {entry.summary}
+                    </p>
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <Image
+                        src={entry.image}
+                        width={70}
+                        height={70}
+                        alt={`article image ${entry.image_alt}`}
+                        className="h-45 w-45 rounded-md dark:shadow-gray-800"
+                        placeholder="blur"
+                        blurDataURL="images/loader/placeholder.png"
+                    />
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <div className="flex items-center space-x-3.5">
+                        <Link href={`/cms/blog/show/${entry.id}`} className="hover:text-primary">
+                            <Suspense>
+                                <FiEye />
+                            </Suspense>
+                        </Link>
+                        <Link href={`/cms/blog/edit/${entry.id}`} className="hover:text-primary">
+                            <Suspense>
+                                <FiEdit />
+                            </Suspense>
+                        </Link>
+                        <button className="hover:text-primary" onClick={handleShow}>
+                            <Suspense>
+                                <FiTrash />
+                            </Suspense>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {/* ))} */}
+
+            {/* <div>
+                <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
+                    <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
+                        <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Your Message Sent Successfully</h3>
+                        <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
+                        <p className="mb-10">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since</p>
+                        <div className="-mx-3 flex flex-wrap gap-y-4">
+                            <div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1" onClick={handleClose}>Cancel</button></div>
+                            <div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={deleteEntry}>View Details</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div> */}
+            {/* <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Modal title</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Woohoo, you&apos;re reading this text in a modal!
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={deleteEntry}>
+                        Confirm
+                    </Button>
+                </Modal.Footer>
+            </Modal> */}
+        </>
+    )
+}
+
+export default function BlogListTable() {
+    // const { data: session } = useSession()
+    const API_URL_BLOG = 'https://jamilmuhammad.my.id/api/v1/'
+
+    const { mutate } = useSWRConfig()
+
+    const { data, error } = useSWR(`${API_URL_BLOG}article`, fetcher)
+    const [show, setShow] = useState(false);
+    const [selectedList, setSelectedList] = useState<number | null>(null);
+
+    const handleShow = (id: number) => {
+        setSelectedList(id);
+        setShow(true);
+    }
+    const handleClose = () => {
+        setShow(false);
+    }
+
+    const deleteEntry = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+
+        await fetch(`${API_URL_BLOG}article/${selectedList}`, {
+            method: "DELETE",
+        })
+
+        mutate(`${API_URL_BLOG}article`)
+    }
+
+    const blogData: Blog[] = useMemo(() => {
+        if (data?.data && Array.isArray(data?.data)) {
+            return data.data;
+        }
+        return [];
+    }, [data?.data]);
+
+    if (error || blogData.length === 0) {
+        return <EmptyState message={data?.message ? data?.message : 'No Data'} />
+    }
+
+    if (!blogData) {
+        return <Loader />
+    }
+
+    return (
+        <>
+            <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+                <div className="max-w-full overflow-x-auto">
+                    <table className="w-full table-auto">
+                        <thead>
+                            <tr className="bg-gray-600 text-left dark:bg-gray-300">
+                                <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                                    Title
+                                </th>
+                                <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+                                    Summary
+                                </th>
+                                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                                    Image
+                                </th>
+                                <th className="py-4 px-4 font-medium text-black dark:text-white">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {blogData?.map((entry, index) => (
+                                <BlogListEntry key={index} entry={entry} handleShow={() => handleShow(entry.id)} />
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {/* <button className="rounded-md bg-primary py-3 px-9 font-medium text-white" onClick={() => setShow(true)}>Modal 1</button> */}
+            {/* {show ? (
+                <>
+                    <div
+                        className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+                    >
+                        <div className="relative w-auto my-6 mx-auto max-w-3xl">
+                            <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                                <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
+                                    <h3 className="text-3xl font-semibold">
+                                        Modal Title
+                                    </h3>
+                                    <button
+                                        className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                                        onClick={handleClose}
+                                    >
+                                        <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
+                                            ×
+                                        </span>
+                                    </button>
+                                </div>
+                                <div className="relative p-6 flex-auto">
+                                    <p className="my-4 text-slate-500 text-lg leading-relaxed">
+                                        I always felt like I could do anything. That’s the main
+                                        thing people are controlled by! Thoughts- their perception
+                                        of themselves! They're slowed down by their perception of
+                                        themselves. If you're taught you can’t do anything, you
+                                        won’t do anything. I was taught I could do everything.
+                                    </p>
+                                </div>
+                                <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
+                                    <button
+                                        className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                        type="button"
+                                        onClick={handleClose}
+                                    >
+                                        Close
+                                    </button>
+                                    <button
+                                        className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                        type="button"
+                                        onClick={deleteEntry}
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                </>
+                <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden' }`}><div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5"><h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Your Message Sent Successfully</h3><span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span><p className="mb-10">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since</p><div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1">Cancel</button></div><div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90">View Details</button></div></div></div></div>
+                <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
+                    <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
+                        <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Your Message Sent Successfully</h3>
+                        <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
+                        <p className="mb-10">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since</p>
+                        <div className="-mx-3 flex flex-wrap gap-y-4">
+                            <div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1" onClick={handleClose}>Cancel</button></div>
+                            <div className="w-full px-3 2xsm:w-1/2"><button className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={deleteEntry}>View Details</button></div>
+                        </div>
+                    </div>
+                </div>
+             ) : null} */}
+        </>
+    )
+}
