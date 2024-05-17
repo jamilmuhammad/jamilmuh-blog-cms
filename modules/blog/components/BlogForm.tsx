@@ -9,35 +9,33 @@ import "@uiw/react-md-editor/markdown-editor.css"
 import "@uiw/react-markdown-preview/markdown.css"
 import "@uiw/react-md-editor/markdown-editor.css"
 
-import Select, { GroupBase, MultiValue, Options } from "react-select";
+import { MultiValue } from "react-select";
+import CreatableSelect from 'react-select/creatable';
+
 import { usePathname, useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 
 import MDEditor from "@uiw/react-md-editor";
-import { MDEditorProps } from '@uiw/react-md-editor';
 import { fetcher } from "@/services/fetcher"
 import { Blog, Tag } from "@/commons/types/blog"
 import EmptyState from "@/components/common/elements/EmptyState"
 import Loader from "@/components/common/Loader"
 import React from 'react';
-import ReactSelect, { ActionMeta } from 'react-select';
-import CheckboxOne from "@/components/Checkboxes/CheckboxOne"
+import { ActionMeta } from 'react-select';
+import CheckboxStatus from "@/components/Checkboxes/CheckboxStatus"
 
 import useUpload from "@/hooks/use-upload.hook"
-import { ButtonFile, Dropzone, InputLink, PreviewImage, ProgressCard } from "./Uploaders"
+import { ButtonFile, Dropzone, InputLink, PreviewImage } from "./Uploaders"
 import { uploadFile } from "@/lib"
 import { toast } from 'react-toastify';
+import { useForm } from "react-hook-form"
+import { BlogSchema, TBlogSchema } from "../types/blog"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ProgressCard } from "@/components/common/elements/ProgressCard"
 
 interface OptionType {
   value: string | number;
   label: string;
 }
-
-// const MDEditor = dynamic<MDEditorProps>(
-//   () => import('@uiw/react-md-editor').then((mod) => mod.default),
-//   { ssr: false }
-// );
-
 interface FormDefaultProps {
   state?: string | null,
   message?: string | null
@@ -60,10 +58,6 @@ export default function BlogForm() {
     const match: RegExpMatchArray | null = url.match(pattern);
 
     if (match) {
-      // const action: string | undefined = match[1]; // "show", "edit", or undefined
-      // const id: number | undefined = parseInt(match[2], 10); // The number or undefined
-      // return { action, id }
-
       const parts = url.split('/')
 
       if (parts[1] === 'blog') {
@@ -105,7 +99,17 @@ export default function BlogForm() {
     if (action == 'show') {
       setIsShow(true)
     }
-  }, [isShow])
+  }, [action])
+
+  const {
+    register,
+    trigger,
+    formState: { errors },
+    reset,
+    setValue
+  } = useForm<TBlogSchema>({
+    resolver: zodResolver(BlogSchema), // Apply the zodResolver
+  });
 
   const { mutate } = useSWRConfig()
   const [form, setForm] = useState(FormDefault)
@@ -115,12 +119,16 @@ export default function BlogForm() {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const API_URL_BLOG = 'https://jamilmuhammad.my.id/api/v1/'
+  const [isLoading, setIsLoading] = useState(false);
+
+  const API_URL_BLOG = `${process.env.NEXT_PUBLIC_API_URL}article`
+  const API_URL_BLOG_ACTION = `${process.env.NEXT_PUBLIC_API_URL}article/${id}`
+  const API_URL_TAG = `${process.env.NEXT_PUBLIC_API_URL}tag`
 
   const shouldFetchArticle = action != 'create'; // Only fetch when action is "create"
 
   const { data: responseDataArticle, error: responseErrorArticle } = useSWR(
-    shouldFetchArticle ? `${API_URL_BLOG}article/${id}` : null,
+    shouldFetchArticle ? API_URL_BLOG_ACTION : null,
     fetcher, {
     onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
       if (error.status === 404) return
@@ -135,7 +143,7 @@ export default function BlogForm() {
   const { data: dataArticle } = responseDataArticle || {}
   const { response: errorArticle } = responseErrorArticle || {}
 
-  const { data: responseDataTags, error: responseErrorTags } = useSWR(`${API_URL_BLOG}tag`, fetcher, {
+  const { data: responseDataTags, error: responseErrorTags } = useSWR(`${API_URL_TAG}`, fetcher, {
     onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
       if (error.status === 404) return
       if (retryCount >= 10) return
@@ -162,6 +170,20 @@ export default function BlogForm() {
     }
   }, [dataArticle])
 
+  useEffect(() => {
+    if (formData) {
+      setValue('title', formData.title);
+      setValue('date', formData.date);
+      setValue('summary', formData.summary);
+      setValue('image', formData.image);
+      setValue('image_alt', formData.image_alt);
+    }
+  }, [formData, setValue]);
+
+  useEffect(() => {
+    trigger();
+  }, [formData]);
+
   const detailArticleTags = useMemo(() => {
     if (dataArticle?.tags && Array.isArray(dataArticle?.tags)) {
       return dataArticle?.tags.map((tag: Tag) => { return { value: tag.id, label: tag.name } });
@@ -175,12 +197,6 @@ export default function BlogForm() {
     }
     return [];
   }, [dataTags]);
-
-  const options = [
-    { value: 'chocolate', label: 'Chocolate' },
-    { value: 'strawberry', label: 'Strawberry' },
-    { value: 'vanilla', label: 'Vanilla' }
-  ]
 
   if (shouldFetchArticle && errorArticle) {
     return <EmptyState message={errorArticle?.data?.message ? errorArticle?.data?.message : 'No Data'} />
@@ -200,12 +216,17 @@ export default function BlogForm() {
 
   };
 
+  const handleChangeInputImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    handleChange(e)
+    u.setFiles(value);
+  };
+
   const handleTagsChange = async (
     selected: MultiValue<OptionType>,
     selectAction: ActionMeta<OptionType>
   ) => {
     const { action } = selectAction;
-    // console.log(`action ${action}`);
     if (action === "clear") {
       setFormData((prevData: Blog) => ({ ...prevData, tags: [] }))
     } else if (action === "select-option") {
@@ -219,9 +240,51 @@ export default function BlogForm() {
     }
   };
 
-  const handleFormChange = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleCreate = (inputValue: string) => {
+    setIsLoading(true);
+    setTimeout(async () => {
+      const res = await fetch(API_URL_TAG, {
+        body: JSON.stringify({
+          name: inputValue
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: 'POST',
+      })
+
+      const { data, error, message } = await res.json()
+
+      if (error) {
+        toast.error(message);
+        setIsLoading(false);
+      }
+
+      listTags.push({ value: data.id, label: data.name });
+      detailArticleTags.push({ value: data.id, label: data.name });
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const filterColors = (inputValue: string) => {
+    return listTags.filter(({ label }) =>
+      label.toLowerCase().includes(inputValue.toLowerCase())
+    );
+  };
+
+  const handleFormChange = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     setForm({ state: "" })
-    handleShow()
+    // Trigger validation and capture the result
+    const result = await trigger();
+
+    // If the form is valid, reset it and handle the show
+    if (result) {
+      reset();
+      handleShow();
+    } else {
+      console.log(errors);
+    }
   }
 
   const leaveEntry = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -235,10 +298,6 @@ export default function BlogForm() {
       draft: isChecked,
     }
 
-    console.log(payload);
-    
-
-    return payload
 
     if (u.formatImage) {
       const data = await uploadFile({
@@ -254,13 +313,17 @@ export default function BlogForm() {
       }
     }
 
+    if (payload.image) {
+      payload.image = payload.image.replace(/\s/g, "");
+    }
+
     setForm({ state: "process" })
 
-    let url = `${API_URL_BLOG}article`
+    let url = API_URL_BLOG
     let method = 'POST'
 
     if (action != 'create' && id) {
-      url = `${API_URL_BLOG}article/${id}`
+      url = API_URL_BLOG_ACTION
       method = 'PATCH'
     }
 
@@ -284,7 +347,7 @@ export default function BlogForm() {
       toast.error(message);
     }
 
-    mutate(`${API_URL_BLOG}article`)
+    mutate(API_URL_BLOG)
     setForm({
       state: "success",
       message: `Successfully, manage article!`,
@@ -297,7 +360,7 @@ export default function BlogForm() {
 
   return (
     <>
-      <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-primary-color-dark-100 dark:bg-primary-color-dark-300 sm:px-7.5 xl:pb-1">
+      <div className="rounded-sm border border-stroke px-5 pt-6 pb-2.5 shadow-default dark:border-primary-color-dark-100 sm:px-7.5 xl:pb-1">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
           <h3 className="font-medium text-black dark:text-white">
             Blog Form
@@ -311,6 +374,7 @@ export default function BlogForm() {
                   Title article
                 </label>
                 <input
+                  {...register("title", { required: true })}
                   type="text"
                   readOnly={isShow}
                   disabled={isShow}
@@ -320,6 +384,7 @@ export default function BlogForm() {
                   onChange={handleChange}
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                {errors.title?.message && <span>{`${errors.title?.message}`}</span>}
               </div>
 
               <div className="w-full xl:w-1/2">
@@ -327,6 +392,7 @@ export default function BlogForm() {
                   Date
                 </label>
                 <input
+                  {...register("date", { required: true })}
                   type="date"
                   name="date"
                   readOnly={isShow}
@@ -336,6 +402,7 @@ export default function BlogForm() {
                   onChange={handleChange}
                   className="custom-input-date custom-input-date-2 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                {errors.date?.message && <span>{`${errors.date?.message}`}</span>}
               </div>
             </div>
 
@@ -351,7 +418,7 @@ export default function BlogForm() {
                   <div className='w-full h-full flex gap-6 flex-col justify-evenly items-center'>
                     {formData?.image && <i className='fa-sharp fa-solid fa-circle-check text-4xl text-green-600'></i>}
 
-                    {u.files && <PreviewImage imageUrl={u.files} removePreview={u.handleRemovePreview} isShow={isShow} />}
+                    {(u.files && !errors.image) && <PreviewImage imageUrl={u.files} removePreview={u.handleRemovePreview} isShow={isShow} />}
 
                     {!isShow && (
                       <>
@@ -360,18 +427,10 @@ export default function BlogForm() {
                       </>
                     )}
 
-                    {u.files && <InputLink value={u.files} />}
+                    <InputLink value={u.files} register={register} errors={errors.image?.message} handleChange={handleChangeInputImage} />
                   </div>
                 </div>
               )}
-              {/* <input
-                type="text"
-                name="image"
-                value={formData?.image ?? 'https://i.pinimg.com/564x/38/02/cb/3802cbc79b6532df9dc0ba5a3443052d.jpg'}
-                onChange={handleChange}
-                placeholder="Enter your email address"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              /> */}
             </div>
 
             <div className="mb-4.5">
@@ -379,6 +438,7 @@ export default function BlogForm() {
                 Image alt <span className="text-meta-1">*</span>
               </label>
               <input
+                {...register("image_alt")}
                 type="text"
                 readOnly={isShow}
                 disabled={isShow}
@@ -388,6 +448,7 @@ export default function BlogForm() {
                 placeholder="Enter image alt article"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              {errors.image_alt?.message && <span>{`${errors.image_alt?.message}`}</span>}
             </div>
 
             <div className="mb-4.5">
@@ -411,7 +472,7 @@ export default function BlogForm() {
                 Status
               </label>
               <div className="relative z-20 bg-transparent dark:bg-form-input">
-                <CheckboxOne isChecked={isChecked} setIsChecked={setIsChecked} isShow={isShow} />
+                <CheckboxStatus isChecked={isChecked} setIsChecked={setIsChecked} isShow={isShow} />
               </div>
             </div>
 
@@ -429,18 +490,18 @@ export default function BlogForm() {
                 Multiselect Dropdown
               </label>
               <div className="relative z-20 w-full rounded border border-stroke p-1.5 pr-8 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input">
-                <Select
-                  id="selectTag"
-                  instanceId="selectTag"
-                  isDisabled={isShow}
+                <CreatableSelect
                   isMulti
+                  instanceId="selectTag"
+                  isDisabled={isShow || isLoading}
                   name="tags"
                   className="basic-multi-select"
                   classNamePrefix="select"
-                  defaultValue={detailArticleTags}
                   options={listTags}
+                  value={detailArticleTags}
                   onChange={(selected: MultiValue<OptionType>, selectAction: ActionMeta<OptionType>) => handleTagsChange(selected, selectAction)}
-                  placeholder="Pilih Tag"
+                  onCreateOption={handleCreate}
+                  placeholder="Enter tag for article"
                 />
               </div>
             </div>
@@ -450,7 +511,7 @@ export default function BlogForm() {
                 <button type="button" className="flex justify-center rounded bg-graydark p-3 font-medium text-white" onClick={handleFormChange}>
                   Confirm
                 </button>}
-              <Link href={`/blog`} className="flex justify-center rounded bg-graydark p-3 font-medium text-white">
+              <Link href={`/blog`} className="flex justify-center rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-dark dark:border-white dark:bg-meta-4 dark:text-white dark:hover:border-dark dark:hover:bg-opacity-90">
                 Cancel
               </Link>
               <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
