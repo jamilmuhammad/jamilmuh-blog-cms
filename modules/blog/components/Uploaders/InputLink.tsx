@@ -1,26 +1,27 @@
 import { toast } from 'react-toastify';
 
 import { Suspense, type FC } from 'react';
-import { UseFormRegister } from 'react-hook-form';
+import { FieldValues, Path, UseFormRegister } from 'react-hook-form';
 import { FiCopy } from 'react-icons/fi';
-import { FormData } from '../../types/blog';
 
-type InputLinkProps = {
+type InputLinkProps<T extends FieldValues> = {
+	name: Path<T>
 	value: string | null;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-	register: UseFormRegister<FormData>;
+	register: UseFormRegister<T>;
 	errors: string | undefined;
+	placeholder: string | undefined
 };
 
-export const InputLink: FC<InputLinkProps> = ({ value, handleChange, register, errors = null }) => {
+export const InputLink = <T extends FieldValues>({ value, handleChange, name, register, errors, placeholder }: InputLinkProps<T>) => {
 	return (
 		<div className='relative w-full'>
 			<label className='relative bg-green-300'>
 				<input
-					{...register("image")}
-					placeholder="Enter image url or upload file image"
+					{...(register ? register(name) : {})}
+					placeholder={placeholder}
 					type='text'
-					name='image'
+					name={name}
 					value={value || ""}
 					onChange={handleChange}
 					className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'

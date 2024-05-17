@@ -427,7 +427,7 @@ export default function BlogForm() {
                       </>
                     )}
 
-                    <InputLink value={u.files} register={register} errors={errors.image?.message} handleChange={handleChangeInputImage} />
+                    <InputLink value={u.files} name="image" register={register} errors={errors.image?.message} handleChange={handleChangeInputImage} placeholder={`Enter image url or upload file image`} />
                   </div>
                 </div>
               )}
