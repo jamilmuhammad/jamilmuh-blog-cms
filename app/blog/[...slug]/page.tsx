@@ -12,7 +12,7 @@ const BlogDetail = () => {
       <div className="rounded-sm border border-stroke bg-white p-10 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap justify-center gap-5">
           <Suspense fallback={<Loader />}>
-            <BlogForm action={'show'} id={Number(1)} />
+            <BlogForm />
           </Suspense>
         </div>
       </div>
