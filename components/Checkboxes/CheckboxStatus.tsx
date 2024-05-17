@@ -1,12 +1,10 @@
-import { useState } from 'react';
-
-interface CheckboxOneProps {
+interface CheckboxStatusProps {
   isChecked: boolean,
   setIsChecked: (checked: boolean) => void,
   isShow: boolean
 }
 
-const CheckboxOne = ({ isChecked, setIsChecked, isShow }: CheckboxOneProps) => {
+const CheckboxStatus = ({ isChecked, setIsChecked, isShow }: CheckboxStatusProps) => {
 
   return (
     <div>
@@ -40,4 +38,4 @@ const CheckboxOne = ({ isChecked, setIsChecked, isShow }: CheckboxOneProps) => {
   );
 };
 
-export default CheckboxOne;
+export default CheckboxStatus;
