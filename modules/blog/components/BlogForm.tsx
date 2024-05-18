@@ -31,6 +31,8 @@ import { useForm } from "react-hook-form"
 import { BlogSchema, TBlogSchema } from "../types/blog"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ProgressCard } from "@/components/common/elements/ProgressCard"
+import { Role } from "@/types/roles"
+import { useAuthStore } from "@/lib/store/auth"
 
 interface OptionType {
   value: string | number;
@@ -100,6 +102,8 @@ export default function BlogForm() {
       setIsShow(true)
     }
   }, [action])
+  
+  const { user } = useAuthStore()
 
   const {
     register,
@@ -467,14 +471,14 @@ export default function BlogForm() {
               ></textarea>
             </div>
 
-            <div className="mb-4.5">
+            {(user?.user_admin && user?.user_admin.user_admin_role.name == Role.SUPER_ADMIN) && <div className="mb-4.5">
               <label className="mb-2.5 block text-black dark:text-white">
                 Status
               </label>
               <div className="relative z-20 bg-transparent dark:bg-form-input">
                 <CheckboxStatus isChecked={isChecked} setIsChecked={setIsChecked} isShow={isShow} />
               </div>
-            </div>
+            </div>}
 
             <div className="mb-4.5">
               <label className="mb-2.5 block text-black dark:text-white">
