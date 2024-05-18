@@ -3,7 +3,7 @@ import Loader from "@/components/common/Loader";
 import TagForm from "@/modules/tag/components/TagForm";
 import { Suspense } from "react";
 
-const BlogDetail = () => {
+const TagDetail = () => {
   return (
     <>
       <Breadcrumb pageName="Tag Detail" />
@@ -19,4 +19,4 @@ const BlogDetail = () => {
   );
 };
 
-export default BlogDetail;
+export default TagDetail;

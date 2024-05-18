@@ -4,7 +4,7 @@ import TagListTable from "@/modules/tag";
 import Link from "next/link";
 import { Suspense } from "react";
 
-const BlogManagement = () => {
+const TagManagement = () => {
 
   return (
     <>
@@ -24,4 +24,4 @@ const BlogManagement = () => {
   );
 };
 
-export default BlogManagement;
+export default TagManagement;
