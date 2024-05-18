@@ -1,9 +1,9 @@
-import ECommerce from "@/components/Dashboard/E-commerce";
+import Analytic from "@/components/Dashboard/Analytic";
 
 export default function Home() {
   return (
     <>
-      <ECommerce />
+      <Analytic />
     </>
   );
 }
