@@ -73,7 +73,7 @@ export default function TagItem({ entry, handleClick, isCheck }: TagItemProps) {
                                     <FiTrash />
                                 </Suspense>
                             </button>
-                            <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
+                            <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? 'block' : 'hidden'}`}>
                                 <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
                                     <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
