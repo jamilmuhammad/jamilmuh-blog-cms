@@ -92,7 +92,11 @@ export default function BlogItem({ entry, handleClick, isCheck, isDraft, setIsDr
                 {(user?.user_admin && user?.user_admin.user_admin_role.name == Role.SUPER_ADMIN) && <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                     <div>
                         <div className="relative z-20 bg-white dark:bg-form-input">
-                            <span className={`absolute top-1/2 left-4 z-30 -translate-y-1/2`}>
+                            <select value={draft} onChange={handleDraft} name={entry.draft.toString()} id={entry.id.toString()} className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input items-center justify-center text-center">
+                                <option value="false" >Draft</option>
+                                <option value="true" >Publish</option>
+                            </select>
+                            <span className={`absolute top-1/2 left-2 z-30 -translate-y-1/2`}>
                                 {draft == "false" ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
@@ -106,10 +110,6 @@ export default function BlogItem({ entry, handleClick, isCheck, isDraft, setIsDr
                                     </svg>)
                                 }
                             </span>
-                            <select value={draft} onChange={handleDraft} name={entry.draft.toString()} id={entry.id.toString()} className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input">
-                                <option value="false" >Draft</option>
-                                <option value="true" >Publish</option>
-                            </select>
                             <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
                                 <svg
                                     width="24"
@@ -155,7 +155,7 @@ export default function BlogItem({ entry, handleClick, isCheck, isDraft, setIsDr
                                     <FiTrash />
                                 </Suspense>
                             </button>
-                            <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
+                            <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? 'block' : 'hidden'}`}>
                                 <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
                                     <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
