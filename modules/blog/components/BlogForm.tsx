@@ -386,7 +386,7 @@ export default function BlogForm() {
                   value={formData?.title ?? ''}
                   name="title"
                   onChange={handleChange}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                  className="w-full rounded border-2 border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
                 {errors.title?.message && <span>{`${errors.title?.message}`}</span>}
               </div>
@@ -404,7 +404,7 @@ export default function BlogForm() {
                   placeholder="Enter date article"
                   value={formData?.date ?? ''}
                   onChange={handleChange}
-                  className="custom-input-date custom-input-date-2 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                  className="custom-input-date custom-input-date-2 w-full rounded border-2 border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
                 {errors.date?.message && <span>{`${errors.date?.message}`}</span>}
               </div>
@@ -450,7 +450,7 @@ export default function BlogForm() {
                 value={formData?.image_alt ?? ''}
                 onChange={handleChange}
                 placeholder="Enter image alt article"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className="w-full rounded border-2 border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
               {errors.image_alt?.message && <span>{`${errors.image_alt?.message}`}</span>}
             </div>
@@ -467,7 +467,7 @@ export default function BlogForm() {
                 value={formData?.summary ?? ''}
                 onChange={handleChange}
                 placeholder="Type summary article"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className="w-full rounded border-2 border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               ></textarea>
             </div>
 
@@ -510,14 +510,14 @@ export default function BlogForm() {
               </div>
             </div>
 
-            <div className="flex flex-row-reverse gap-6 py-4">
+            <div className="flex gap-3 2xsm:gap-7 py-4">
+              <Link href={`/blog`} className="flex justify-center rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-dark dark:border-white dark:bg-meta-4 dark:text-white dark:hover:border-dark dark:hover:bg-opacity-90">
+                Cancel
+              </Link>
               {!isShow &&
                 <button type="button" className="flex justify-center rounded bg-graydark p-3 font-medium text-white" onClick={handleFormChange}>
                   Confirm
                 </button>}
-              <Link href={`/blog`} className="flex justify-center rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-dark dark:border-white dark:bg-meta-4 dark:text-white dark:hover:border-dark dark:hover:bg-opacity-90">
-                Cancel
-              </Link>
               <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
                 <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
                   {form.state == '' && (

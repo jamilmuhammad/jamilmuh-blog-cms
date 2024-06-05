@@ -236,7 +236,7 @@ export default function TagForm() {
           <div className="p-6.5">
             <div className="mb-4.5">
               <label className="mb-2.5 block text-black dark:text-white">
-                Name tag <span className="text-meta-1">*</span>
+                Name <span className="text-danger">*</span>
               </label>
               <input
                 {...register("name", { required: false })}
@@ -248,20 +248,20 @@ export default function TagForm() {
                 value={formData?.name ?? ''}
                 name="name"
                 onChange={handleChange}
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className="w-full rounded border-2 border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-white dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 aria-invalid={Boolean(errors.name)}
               />
               {errors.name?.message && <span>{`${errors.name?.message}`}</span>}
             </div>
 
-            <div className="flex flex-row-reverse gap-6 py-4">
+            <div className="flex gap-3 2xsm:gap-7 py-4">
+              <Link href={`/tag`} className="flex justify-center rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-dark dark:border-white dark:bg-meta-4 dark:text-white dark:hover:border-dark dark:hover:bg-opacity-90">
+                Cancel
+              </Link>
               {!isShow &&
                 <button type="button" className="flex justify-center rounded bg-graydark p-3 font-medium text-white" onClick={handleFormChange}>
                   Confirm
                 </button>}
-              <Link href={`/tag`} className="flex justify-center rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-dark dark:border-white dark:bg-meta-4 dark:text-white dark:hover:border-dark dark:hover:bg-opacity-90">
-                Cancel
-              </Link>
               <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
                 <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
                   <Suspense>
