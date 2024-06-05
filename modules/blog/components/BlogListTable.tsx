@@ -1,6 +1,6 @@
 "use client"
 /* eslint-disable @next/next/no-html-link-for-pages */
-import { ChangeEvent, Suspense, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, Suspense, useEffect, useMemo, useRef, useState } from "react"
 import useSWR, { useSWRConfig } from "swr"
 
 import { fetcher } from "@/services/fetcher"
@@ -26,51 +26,51 @@ export default function BlogListTable() {
 
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(5);
-    const [input, setInput] = useState('');
     const [search, setSearch] = useState('');
     const debouncedValue = useDebounce(search, 500);
+    const searchRef = useRef<any>(null);
+
     const [draft, setDraft] = useState('');
 
     const [isCheckAll, setIsCheckAll] = useState(false);
     const [isCheck, setIsCheck] = useState([] as number[]);
     const [isDraft, setIsDraft] = useState([] as Draft[]);
 
-    const [url, setUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL}article?q=${search}&page=${page}&limit=${limit}&draft=${draft}`);
+    const [url, setUrl] = useState(`/api/blog?page=${page}&limit=${limit}`);
 
     const { user } = useAuthStore()
 
     useEffect(() => {
         if (page && limit && (debouncedValue || search.length <= 0) && (draft || draft.length <= 0)) {
-            return setUrl(`${process.env.NEXT_PUBLIC_API_URL}article?q=${search}&page=${page}&limit=${limit}&draft=${draft}`)
+            return setUrl(`/api/blog?q=${debouncedValue}&page=${page}&limit=${limit}&draft=${draft}`)
         }
     }, [page, limit, debouncedValue, draft]);
-
-    useMemo(() => {
-        const timeoutId = setTimeout(() => {
-            setSearch(input);
-        }, 3000);
-
-        return () => clearTimeout(timeoutId);
-    }, [input]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setSearch(value || '');
         setPage(1)
+        if (!value || value == '') {
+            setPage((prevState: number) => (prevState))
+        }
     };
 
     const handleDraft = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        e.preventDefault()
         const { value } = e.target;
         setDraft(value);
         setPage(1)
     };
 
     const resetQuery = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault()
         setSearch('');
         setDraft('')
+        searchRef.current.value = ''
+        setPage((prevState: number) => (prevState))
     };
 
-    const { data, error } = useSWR(`${url}`, fetcher)
+    const { data, error, isLoading } = useSWR(`${url}`, fetcher)
 
     const blogData: Blog[] = useMemo(() => {
         if (data?.data && Array.isArray(data?.data)) {
@@ -85,7 +85,7 @@ export default function BlogListTable() {
 
     const handleSelectAll = (e: ChangeEvent<HTMLInputElement>): void => {
         e.preventDefault()
-        
+
         setIsCheckAll(!isCheckAll);
         if (isCheck.length == 0) {
             setIsCheck(blogData.map((li: Blog) => li.id as number));
@@ -135,7 +135,7 @@ export default function BlogListTable() {
         setShow(false);
     }
 
-    const API_URL_BLOG = `${process.env.NEXT_PUBLIC_API_URL}article`
+    const API_URL_BLOG = `/api/blog`
 
     useMemo(() => {
         if (progressStatus >= 100) {
@@ -272,14 +272,16 @@ export default function BlogListTable() {
                 <div className="max-w-full overflow-x-auto">
                     <table className="w-full table-auto">
                         <thead>
-                            <tr className="bg-gray-600 text-left dark:bg-gray-300">
+                            <tr className="bg-gray-600 text-left dark:bg-gray-300 items-center justify-center text-center">
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white flex items-center justify-center">
-                                    {(isCheck.length > 0) && (<div>
-                                        <button className="hover:text-primary" onClick={handleModal}>
-                                            <Suspense>
-                                                <FiTrash />
-                                            </Suspense>
-                                        </button>
+                                    <div>
+                                        {(isCheck.length > 0) && (
+                                            <button className="hover:text-primary" onClick={handleModal}>
+                                                <Suspense>
+                                                    <FiTrash />
+                                                </Suspense>
+                                            </button>
+                                        )}
                                         <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
                                             <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
                                                 {(form.state == FormState.Default) && (
@@ -305,7 +307,7 @@ export default function BlogListTable() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>)}
+                                    </div>
                                     {(isDraft.length > 0) && (<div>
                                         <button className="hover:text-primary" onClick={handleModal}>
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -365,23 +367,60 @@ export default function BlogListTable() {
                                     <CheckboxSelectAll type="checkbox" name="selectAll" id="selectAll" handleClick={handleSelectAll} isChecked={isCheckAll} isChecks={isCheck} totalItems={data?.meta?.total_items} />
                                 </td>
                                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                                    <input
-                                        type="text"
-                                        placeholder="Search article title"
-                                        value={search}
-                                        name="title"
-                                        onChange={handleChange}
-                                        className="rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                                    />
+                                    <div className="relative">
+                                        <button className="absolute right-1 top-1/2 -translate-y-1/2" onClick={resetQuery}>
+                                            {search.length > 0 &&
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                    className="h-5 w-5 text-gray-400 dark:text-gray-300"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M6 18 18 6M6 6l12 12"
+                                                    />
+                                                </svg>
+                                            }
+                                            {search.length <= 0 &&
+                                                <svg
+                                                    className="h-5 w-5 text-gray-400 dark:text-gray-300"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                                    />
+                                                </svg>
+
+                                            }
+                                        </button>
+                                        <input
+                                            ref={searchRef}
+                                            type="text"
+                                            placeholder="Search title"
+                                            name="title"
+                                            onChange={handleChange}
+                                            className="block w-full rounded border-2 border-stroke bg-transparent py-3 px-2 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                                 </td>
                                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                                 </td>
-                                {(user?.user_admin && user?.user_admin.user_admin_role.name == Role.SUPER_ADMIN) && <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
+                                {(user?.user_admin && user?.user_admin.user_admin_role.name == Role.SUPER_ADMIN) && (<td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                                     <div>
                                         <div className="relative z-20 bg-white dark:bg-form-input">
-                                            <select value={draft} onChange={handleDraft} className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input">
+                                            <select value={draft} onChange={handleDraft} className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input items-center justify-center text-center">
                                                 <option value="">All</option>
                                                 <option value="false">Draft</option>
                                                 <option value="true">Publish</option>
@@ -406,18 +445,24 @@ export default function BlogListTable() {
                                             </span>
                                         </div>
                                     </div>
-                                </td>}
+                                </td>)}
                                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                                 </td>
                                 <td className="border-b border-[#eee] items-center justify-center dark:border-strokedark">
                                     <button className="block w-full rounded border border-meta-1 p-3 bg-meta-1 text-center font-medium text-white transition hover:bg-opacity-90" onClick={resetQuery}>Reset</button>
                                 </td>
                             </tr>
-                            <tr>
+                            {isLoading && <tr>
                                 <td colSpan={7} className="items-center justify-center">
-                                    {(error || blogData.length === 0) && <EmptyState message={data?.message ? data?.message : 'No Data'} />}
+                                    <Loader />
                                 </td>
-                            </tr>
+                            </tr>}
+                            {(error || blogData.length === 0) &&
+                                <tr>
+                                    <td colSpan={7} className="items-center justify-center">
+                                        <EmptyState message={data?.message ? data?.message : 'No Data'} />
+                                    </td>
+                                </tr>}
                             {blogData?.map((entry, index) => (
                                 <BlogItem key={index} entry={entry} handleClick={handleClick} isCheck={isCheck} isDraft={isDraft} setIsDraft={setIsDraft} />
                             ))}
