@@ -1,6 +1,6 @@
 'use client'
 /* eslint-disable @next/next/no-html-link-for-pages */
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, Suspense, useRef } from "react"
 import useSWR, { useSWRConfig } from "swr"
 
 import Link from "next/link"
@@ -14,7 +14,6 @@ import CreatableSelect from 'react-select/creatable';
 
 import { usePathname, useRouter } from "next/navigation"
 
-import MDEditor from "@uiw/react-md-editor";
 import { fetcher } from "@/services/fetcher"
 import { Blog, Tag } from "@/commons/types/blog"
 import EmptyState from "@/components/common/elements/EmptyState"
@@ -33,6 +32,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { ProgressCard } from "@/components/common/elements/ProgressCard"
 import { Role } from "@/types/roles"
 import { useAuthStore } from "@/lib/store/auth"
+import dynamic from "next/dynamic"
+import Modal from "@/components/Modal/ModalDefault"
+
+const MDXEditor = dynamic(() => import('@/components/Markdown/MDXEditor'), { ssr: false })
 
 interface OptionType {
   value: string | number;
@@ -102,7 +105,7 @@ export default function BlogForm() {
       setIsShow(true)
     }
   }, [action])
-  
+
   const { user } = useAuthStore()
 
   const {
@@ -123,6 +126,9 @@ export default function BlogForm() {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
+  const editorRef = useRef<any>(null);
+
+
   const [isLoading, setIsLoading] = useState(false);
 
   const API_URL_BLOG = `${process.env.NEXT_PUBLIC_API_URL}article`
@@ -132,7 +138,7 @@ export default function BlogForm() {
   const shouldFetchArticle = action != 'create'; // Only fetch when action is "create"
 
   const { data: responseDataArticle, error: responseErrorArticle } = useSWR(
-    shouldFetchArticle ? API_URL_BLOG_ACTION : null,
+    shouldFetchArticle ? `/api/blog/${id}` : null,
     fetcher, {
     onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
       if (error.status === 404) return
@@ -160,7 +166,7 @@ export default function BlogForm() {
   const { response: errorTags } = responseErrorTags || {}
 
   const [formData, setFormData] = useState(dataArticle)
-  const [markdown, setMarkdown] = useState(dataArticle?.markdown ?? null)
+  const [markdown, setMarkdown] = useState(dataArticle?.markdown ?? '')
   const [isChecked, setIsChecked] = useState(dataArticle?.draft ?? false)
 
   const u = useUpload();
@@ -184,11 +190,7 @@ export default function BlogForm() {
     }
   }, [formData, setValue]);
 
-  useEffect(() => {
-    trigger();
-  }, [formData]);
-
-  const detailArticleTags = useMemo(() => {
+  let detailArticleTags = useMemo(() => {
     if (dataArticle?.tags && Array.isArray(dataArticle?.tags)) {
       return dataArticle?.tags.map((tag: Tag) => { return { value: tag.id, label: tag.name } });
     }
@@ -312,13 +314,15 @@ export default function BlogForm() {
       });
 
       if (data) {
-        const { secure_url } = data
-        payload.image = !secure_url ? 'https://i.pinimg.com/564x/76/80/4e/76804ed4e8c23744eb0b9f34aa60cd2b.jpg' : secure_url
+        const { url } = data
+        payload.image = !url ? 'https://i.pinimg.com/564x/76/80/4e/76804ed4e8c23744eb0b9f34aa60cd2b.jpg' : url
       }
     }
 
     if (payload.image) {
       payload.image = payload.image.replace(/\s/g, "");
+    } else if (!payload.image) {
+      payload.image = 'https://i.pinimg.com/564x/76/80/4e/76804ed4e8c23744eb0b9f34aa60cd2b.jpg'
     }
 
     setForm({ state: "process" })
@@ -361,6 +365,10 @@ export default function BlogForm() {
 
     router.push('/blog')
   }
+
+  const handleMention = (value: string) => {
+    editorRef.current.insertMarkdown(`[@${value}](https://jamilmuhammad-blog.vercel.app/about/${value} "@${value}")`)
+  };
 
   return (
     <>
@@ -484,9 +492,11 @@ export default function BlogForm() {
               <label className="mb-2.5 block text-black dark:text-white">
                 Markdown
               </label>
-              {isShow ? <MDEditor.Markdown source={markdown ?? ''} /> :
-                <MDEditor height={200} value={markdown ?? ''} onChange={setMarkdown} />
-              }
+              <div style={{ border: '1px solid black' }}>
+                <Suspense fallback={null}>
+                  <MDXEditor markdown={markdown ?? ''} onChange={setMarkdown} editorRef={editorRef} handleMention={handleMention} />
+                </Suspense>
+              </div>
             </div>
 
             <div>
@@ -502,7 +512,7 @@ export default function BlogForm() {
                   className="basic-multi-select"
                   classNamePrefix="select"
                   options={listTags}
-                  value={detailArticleTags}
+                  defaultValue={detailArticleTags}
                   onChange={(selected: MultiValue<OptionType>, selectAction: ActionMeta<OptionType>) => handleTagsChange(selected, selectAction)}
                   onCreateOption={handleCreate}
                   placeholder="Enter tag for article"
@@ -518,30 +528,28 @@ export default function BlogForm() {
                 <button type="button" className="flex justify-center rounded bg-graydark p-3 font-medium text-white" onClick={handleFormChange}>
                   Confirm
                 </button>}
-              <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
-                <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
-                  {form.state == '' && (
-                    <>
-                      <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
-                        <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                      </span>
-                      <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
-                      <p className="mb-10">Are you sure want to process this?</p>
-                    </>
-                  )}
-                  {form.state == 'loading' && <ProgressCard progressStatus={u.progressStatus} />}
-                  {form.state == 'process' && <Loader />}
-                  {form.state == 'error' && <EmptyState message={form.message ?? 'There is an error'} />}
-                  <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
-                    <button type="button" className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-success dark:hover:bg-success" onClick={handleClose}>Cancel</button>
-                  </div>
-                    <div className="w-full px-3 2xsm:w-1/2">
-                      <button className="block w-full rounded border border-success bg-success p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={leaveEntry}>Confirm</button>
-                    </div>
+              <Modal show={show}>
+                {form.state == '' && (
+                  <>
+                    <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
+                      <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                    </span>
+                    <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
+                    <p className="mb-10">Are you sure want to process this?</p>
+                  </>
+                )}
+                {form.state == 'loading' && <ProgressCard progressStatus={u.progressStatus} />}
+                {form.state == 'process' && <Loader />}
+                {form.state == 'error' && <EmptyState message={form.message ?? 'There is an error'} />}
+                <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
+                  <button type="button" className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-success dark:hover:bg-success" onClick={handleClose}>Cancel</button>
+                </div>
+                  <div className="w-full px-3 2xsm:w-1/2">
+                    <button className="block w-full rounded border border-success bg-success p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={leaveEntry}>Confirm</button>
                   </div>
                 </div>
-              </div>
+              </Modal>
             </div>
           </div>
         </form>
