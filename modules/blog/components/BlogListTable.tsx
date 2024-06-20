@@ -16,6 +16,7 @@ import PaginationDefault from "@/components/Pagination/PaginationDefault"
 import { useAuthStore } from "@/lib/store/auth"
 import { Role } from "@/types/roles"
 import { ProgressCard } from "@/components/common/elements/ProgressCard"
+import Modal from "@/components/Modal/ModalDefault"
 
 export type Draft = {
     id: number;
@@ -282,31 +283,29 @@ export default function BlogListTable() {
                                                 </Suspense>
                                             </button>
                                         )}
-                                        <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
-                                            <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
-                                                {(form.state == FormState.Default) && (
-                                                    <>
-                                                        <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
-                                                            <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                                                        </span>
-                                                        <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
-                                                        <p className="mb-10">Are you sure want to delete this?</p>
-                                                        <p className="mb-10">{isCheck.length} items</p>
-                                                    </>
-                                                )}
-                                                {(form.state == FormState.Loading) && <ProgressCard progressStatus={progressStatus} />}
-                                                {(form.state == FormState.Process) && <Loader />}
-                                                {(form.state == FormState.Error) && <EmptyState message={form.message ?? 'There is an error'} />}
-                                                <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
-                                                    <button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1" onClick={handleClose}>Cancel</button>
-                                                </div>
-                                                    <div className="w-full px-3 2xsm:w-1/2">
-                                                        <button className="block w-full rounded border border-meta-1 bg-meta-1 p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={deleteEntry}>Delete</button>
-                                                    </div>
+                                        <Modal show={show}>
+                                            {(form.state == FormState.Default) && (
+                                                <>
+                                                    <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect opacity="0.1" width="60" height="60" rx="30" fill="#DC2626"></rect>
+                                                        <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                                                    </span>
+                                                    <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
+                                                    <p className="mb-10">Are you sure want to delete this?</p>
+                                                    <p className="mb-10">{isCheck.length} items</p>
+                                                </>
+                                            )}
+                                            {(form.state == FormState.Loading) && <ProgressCard progressStatus={progressStatus} />}
+                                            {(form.state == FormState.Process) && <Loader />}
+                                            {(form.state == FormState.Error) && <EmptyState message={form.message ?? 'There is an error'} />}
+                                            <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
+                                                <button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1" onClick={handleClose}>Cancel</button>
+                                            </div>
+                                                <div className="w-full px-3 2xsm:w-1/2">
+                                                    <button className="block w-full rounded border border-meta-1 bg-meta-1 p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={deleteEntry}>Delete</button>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Modal>
                                     </div>
                                     {(isDraft.length > 0) && (<div>
                                         <button className="hover:text-primary" onClick={handleModal}>
@@ -314,31 +313,29 @@ export default function BlogListTable() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                             </svg>
                                         </button>
-                                        <div className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${show ? '' : 'hidden'}`}>
-                                            <div className="w-full max-w-142.5 rounded-lg bg-white py-12 px-8 text-center dark:bg-boxdark md:py-15 md:px-17.5">
-                                                {(form.state == FormState.Default) && (
-                                                    <>
-                                                        <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <rect opacity="0.1" width="60" height="60" rx="30" fill="#FBBF24"></rect>
-                                                            <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#FBBF24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                                                        </span>
-                                                        <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
-                                                        <p className="mb-10">Are you sure want to update this?</p>
-                                                        <p className="mb-10">{isDraft.length} items</p>
-                                                    </>
-                                                )}
-                                                {(form.state == FormState.Loading) && <ProgressCard progressStatus={progressStatus} />}
-                                                {(form.state == FormState.Process) && <Loader />}
-                                                {(form.state == FormState.Error) && <EmptyState message={form.message ?? 'There is an error'} />}
-                                                <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
-                                                    <button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-warning hover:bg-warning hover:text-white dark:border-strokedark dark:bg-warning dark:text-white dark:hover:border-warning dark:hover:bg-warning" onClick={handleDraftClose}>Cancel</button>
-                                                </div>
-                                                    <div className="w-full px-3 2xsm:w-1/2">
-                                                        <button className="block w-full rounded border border-warning bg-warning p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={updateEntry}>Update Status</button>
-                                                    </div>
+                                        <Modal show={show}>
+                                            {(form.state == FormState.Default) && (
+                                                <>
+                                                    <span className="mx-auto inline-block"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect opacity="0.1" width="60" height="60" rx="30" fill="#FBBF24"></rect>
+                                                        <path d="M30 27.2498V29.9998V27.2498ZM30 35.4999H30.0134H30ZM20.6914 41H39.3086C41.3778 41 42.6704 38.7078 41.6358 36.8749L32.3272 20.3747C31.2926 18.5418 28.7074 18.5418 27.6728 20.3747L18.3642 36.8749C17.3296 38.7078 18.6222 41 20.6914 41Z" stroke="#FBBF24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                                                    </span>
+                                                    <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
+                                                    <p className="mb-10">Are you sure want to update this?</p>
+                                                    <p className="mb-10">{isDraft.length} items</p>
+                                                </>
+                                            )}
+                                            {(form.state == FormState.Loading) && <ProgressCard progressStatus={progressStatus} />}
+                                            {(form.state == FormState.Process) && <Loader />}
+                                            {(form.state == FormState.Error) && <EmptyState message={form.message ?? 'There is an error'} />}
+                                            <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
+                                                <button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-warning hover:bg-warning hover:text-white dark:border-strokedark dark:bg-warning dark:text-white dark:hover:border-warning dark:hover:bg-warning" onClick={handleDraftClose}>Cancel</button>
+                                            </div>
+                                                <div className="w-full px-3 2xsm:w-1/2">
+                                                    <button className="block w-full rounded border border-warning bg-warning p-3 text-center font-medium text-white transition hover:bg-opacity-90" onClick={updateEntry}>Update Status</button>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Modal>
                                     </div>)}
                                 </th>
                                 <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
