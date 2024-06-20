@@ -15,22 +15,14 @@ export const BlogSchema = z
       .max(50, { message: "Title is too long" }),
     date: z.string().pipe(z.coerce.date()),
     image: z.string()
-      .url("Image must be link url")
-      .refine(value => {
-        try {
-          const url = new URL(value);
-          const allowedDomains = ['i.pinimg.com', 'pbs.twimg.com', 'res.cloudinary.com']
-          return allowedDomains.includes(url.hostname)
-        } catch {
-          return false;
-        }
-      }, {
-        message: "Image URL must be from example.com", // replace with your domain
+      // .url("Image must be link url")
+      .refine(value => value && (['i.pinimg.com', 'pbs.twimg.com', 'res.cloudinary.com'].includes(new URL(value).hostname) || value.startsWith('blob:')), {
+        message: "Image URL must be from hostnames i.pinimg.com or pbs.twimg.com or res.cloudinary.com or upload file", // replace with your domain
       })
-      .refine(value => /\.(jpe?g|png)$/i.test(value), {
-        message: "Image URL must end with .jpg, .jpeg, or .png",
-      })
-      ,
+      .refine(value => value && (value.startsWith('blob:') || /\.(jpe?g|png|gif|webp)$/i.test(value)), {
+        message: "Image URL must end with .jpg, .jpeg, .png, .gif, or webp",
+      }).optional()
+    ,
     image_alt: z.string().max(50, { message: "Image Alt is too long" }).optional(),
     summary: z.string().max(200, { message: "Summaryy is too long" }).optional()
   })
