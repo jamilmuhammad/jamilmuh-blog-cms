@@ -17,11 +17,13 @@ type Files = {
 	secure_url?: string;
 };
 
-const imageTypeRegex = /image\/(png|gif|jpg|jpeg)/gm;
+const imageTypeRegex = /image\/(png|gif|jpg|jpeg|webp)/gm;
+
+const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
 export const useUpload = () => {
 	const [formatImage, setFormatImage] = useState<FormData | null>(null);
-	const [image, setImage] = useState<ImageRes | null>(null);
+	const [image, setImage] = useState<string | null>(null);
 	const [files, setFiles] = useState<string | null>(null);
 	const [isFetching, setIsFetching] = useState(false);
 	const [isSuccess, setIsSuccess] = useState(false);
@@ -39,7 +41,7 @@ export const useUpload = () => {
 
 		const formData = new FormData();
 		formData.append('file', acceptedFiles[0]);
-		formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+		formData.append('upload_preset', CLOUDINARY_PRESET);
 
 		setFiles(URL.createObjectURL(acceptedFiles[0]))
 		setFormatImage(formData);
@@ -48,7 +50,7 @@ export const useUpload = () => {
 	const { getRootProps, getInputProps, fileRejections, isDragActive } = useDropzone({ ...DROPZONE_OPTIONS, onDrop });
 
 	const onChangeFile = (e: ChangeEvent<HTMLInputElement>): void => {
-		const files = e.target?.files!;		
+		const files = e.target?.files!;
 
 		const formData = new FormData();
 		const file = files?.[0];
@@ -56,7 +58,7 @@ export const useUpload = () => {
 		if (!file?.type.match(imageTypeRegex)) return;
 
 		formData.append('file', file);
-		formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+		formData.append('upload_preset', CLOUDINARY_PRESET);
 
 		const image = URL.createObjectURL(file)
 		setFiles(image)
@@ -70,7 +72,7 @@ export const useUpload = () => {
 				.map((err) => {
 					err.map((el) => {
 						if (el.code.includes('file-invalid-type')) {
-							toast.error('File type must be .png,.jpg,.jpeg,.gif', { theme: 'light' });
+							toast.error('File type must be .png,.jpg,.jpeg,.gif,.webp', { theme: 'light' });
 							return;
 						}
 						if (el.code.includes('file-too-large')) {

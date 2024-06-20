@@ -23,7 +23,7 @@ export const ButtonFile: FC<Props> = (props) => {
 				ref={inputRef}
 				type='file'
 				name='image'
-				accept='image/png, image/gif, image/jpeg'
+				accept='image/png, image/gif, image/jpeg, image/webp'
 				hidden
 				onChange={onChange}
 			/>
