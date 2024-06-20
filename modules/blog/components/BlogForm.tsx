@@ -5,10 +5,6 @@ import useSWR, { useSWRConfig } from "swr"
 
 import Link from "next/link"
 
-import "@uiw/react-md-editor/markdown-editor.css"
-import "@uiw/react-markdown-preview/markdown.css"
-import "@uiw/react-md-editor/markdown-editor.css"
-
 import { MultiValue } from "react-select";
 import CreatableSelect from 'react-select/creatable';
 

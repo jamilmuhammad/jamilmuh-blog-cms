@@ -7,7 +7,6 @@ const nextConfig = {
       'res.cloudinary.com' //Cloudinary
     ],
   },
-  transpilePackages: ['@uiw/react-md-editor'],
   experimental: {
     esmExternals: 'loose',
   },
