@@ -170,11 +170,17 @@ export default function BlogForm() {
   useEffect(() => {
     if (dataArticle) {
       setFormData({ ...dataArticle, tags: dataArticle?.tags.map((tag: Tag) => tag?.id) })
-      setMarkdown(dataArticle?.markdown)
       setIsChecked(dataArticle?.draft)
       u.setFiles(dataArticle?.image)
     }
   }, [dataArticle])
+
+  useEffect(() => {
+    if(dataArticle?.markdown) {
+      setMarkdown(dataArticle?.markdown)
+      editorRef?.current?.setMarkdown(dataArticle?.markdown)
+    }
+  }, [dataArticle?.markdown])
 
   useEffect(() => {
     if (formData) {
