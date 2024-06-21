@@ -81,7 +81,7 @@ export default function TagItem({ entry, handleClick, isCheck }: TagItemProps) {
                                 </span>
                                 <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">Warning</h3>
                                 <p className="mb-10">Are you sure want to delete this?</p>
-                                <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
+                                <div className="-mx-3 flex gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
                                     <button className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1" onClick={handleClose}>Cancel</button>
                                 </div>
                                     <div className="w-full px-3 2xsm:w-1/2">

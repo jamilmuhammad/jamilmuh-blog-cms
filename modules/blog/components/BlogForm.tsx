@@ -544,7 +544,7 @@ export default function BlogForm() {
                 {form.state == 'loading' && <ProgressCard progressStatus={u.progressStatus} />}
                 {form.state == 'process' && <Loader />}
                 {form.state == 'error' && <EmptyState message={form.message ?? 'There is an error'} />}
-                <div className="-mx-3 flex flex-wrap gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
+                <div className="-mx-3 flex gap-y-4"><div className="w-full px-3 2xsm:w-1/2">
                   <button type="button" className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-success hover:bg-success hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-success dark:hover:bg-success" onClick={handleClose}>Cancel</button>
                 </div>
                   <div className="w-full px-3 2xsm:w-1/2">
